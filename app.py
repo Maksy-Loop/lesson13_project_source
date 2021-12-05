@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, send_from_directory
-# from functions import ...
+from functions import
 
 POST_PATH = "posts.json"
 UPLOAD_FOLDER = "uploads/images"
