@@ -35,7 +35,7 @@ def is_tag(jsonefile, tag):
     with open(jsonefile, "r") as file:
         post_list = json.load(file)
     hashtag = f'#{tag}'
-    post_with_tags = [post for post in post_list if hashtag.lower() in post["content"].lower()  and hashtag != "#"]
+    post_with_tags = [post for post in post_list if hashtag.lower() in post.get("content").lower()  and hashtag != "#"]
 
     return post_with_tags
 
