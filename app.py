@@ -1,5 +1,5 @@
-from flask import Flask, request, render_template, send_from_directory, redirect
-from functions import search_unique_tag, is_tag
+from flask import Flask, request, render_template, send_from_directory, redirect, abort
+from functions import search_unique_tag, is_tag, add_value
 import json
 
 POST_PATH = "posts.json"
@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def page_index():
-    tags = search_unique_tag("posts.json")
+    tags = search_unique_tag(POST_PATH)
     return render_template('index.html', tags = tags)
 
 
@@ -18,7 +18,7 @@ def page_index():
 def page_tag():
     tagname = request.args.get("tag")
     if tagname is None:
-        return "Парень, ты не выбрал тег"
+        abort(404)
     else:
         posts_with_tag = is_tag("posts.json", tagname)
         return render_template('post_by_tag.html', posts_with_tag = posts_with_tag, tagname = tagname.title())
@@ -29,33 +29,24 @@ def page_post_create():
     if request.method == "POST":
         content = request.form.get("content")
         picture = request.files["picture"]
-        picture.save(f'uploads/images/{picture.filename}')
-        picture_link = f'uploads/images/{picture.filename}'
-        conv_dict = {
-                "pic": picture_link,
-                "content": content
-            }
-        with open('posts.json', "r") as f:
-            list_date = json.load(f)
 
-        list_date.append(conv_dict)
-
-        with open('posts.json', "w") as f:
-            json.dump(list_date, f, ensure_ascii=False, indent=4)
-
-        return render_template('post_uploaded.html', **conv_dict)
+        if content and picture:
+            picture.save(f'{UPLOAD_FOLDER}/{picture.filename}')
+            picture_link = f'uploads/{picture.filename}'
+            conv_dict = {
+                    "pic": picture_link,
+                    "content": content
+                }
+            add_value(conv_dict, POST_PATH)
+            return render_template('post_uploaded.html', **conv_dict)
+        else:
+            abort(400)
 
     return render_template('post_form.html')
 
-
-@app.route("/uploads/images/<path:path>")
+@app.route("/uploads/<path:path>")
 def static_dir(path):
-   return send_from_directory("uploads/images", path)
-
-
-@app.errorhandler(500)
-def page_not_found(e):
-    return redirect("/post", code=302)
+   return send_from_directory(UPLOAD_FOLDER, path)
 
 
 app.run()

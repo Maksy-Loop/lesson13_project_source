@@ -10,17 +10,16 @@ def search_unique_tag(jsonefile):
     with open(jsonefile, "r") as file:
         post_list = json.load(file)
 
-    list_tags = []
-    for i in post_list:
-        j = i["content"]
-        j = j.split(" ") #разбиваем текст поста на слова по пробелу
+    list_tags = set()
+    for dict in post_list:
+        content = dict["content"]
+        content = content.split(" ") #разбиваем текст поста на слова по пробелу
 
         #перебираем все слова каждого поста, если там есть # то формируем список слов без любых символов
-        for k in j:
-            if "#" in k:
-                list_tags.append("".join([letter.lower() for letter in k if letter.isalnum()]))
-    #удаляем дубликаты
-    list_tags = set(list_tags)
+        for word in content:
+            if word.startswith("#"):
+                #тут мы перебираем буквы каждого слова, если есть спец символы их удаляем
+                list_tags.add("".join([letter.lower() for letter in word if letter.isalnum()]))
 
     return list_tags
 
@@ -40,5 +39,19 @@ def is_tag(jsonefile, tag):
     return post_with_tags
 
 
+def add_value(dict, jsonfile):
+    """
+    функция добавляес словарь в список, который храниться в json файле в виде словаря
+    :param dict:
+    :param json:
+    :return: bool
+    """
+    with open(jsonfile, "r") as f:
+        list_date = json.load(f)
 
-#print(is_tag("posts.json", "кот"))
+    list_date.append(dict)
+
+    with open(jsonfile, "w") as f:
+        json.dump(list_date, f, ensure_ascii=False, indent=4)
+
+    return True
